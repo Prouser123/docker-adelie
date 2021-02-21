@@ -60,6 +60,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v2
+      - name: (debug) Display structure of downloaded files
+        run: ls -R
       - name: Import docker images
         run: |
           "cat ~/x86_64/adelie.docker | docker load"
