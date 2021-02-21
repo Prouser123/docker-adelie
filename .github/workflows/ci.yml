@@ -3,7 +3,7 @@ name: docker
 on: [push, workflow_dispatch]
 
 jobs:
-   buildx:
+  buildx:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
@@ -45,3 +45,23 @@ jobs:
             --platform $(yq r arch-mappings.yml ${{ matrix.arch }}) \
             --output "type=image,push=false" \
             -f ${{ matrix.arch }}/Dockerfile -t adelie:${{ matrix.arch }} ${{ matrix.arch }}
+      - name: Save built image for other jobs
+        run: sudo su -c 'docker save adelie:${{ matrix.arch }} > /adelie.docker && chmod 777 /${{ matrix.arch }}.docker'
+      - name: Upload built image for other jobs
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.arch }}
+          path: /adelie.docker
+  build-manifest:
+    needs: [buildx]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+      - name: Import docker images
+        run: |
+          "cat ~/x86_64/adelie.docker | docker load"
+          "cat ~/pmmx/adelie.docker | docker load"
+          "cat ~/aarch64/adelie.docker | docker load"
+          "cat ~/armv7/adelie.docker | docker load"
+      - name: Create manifest
+        run: docker manifest create jcxldn/adelie:latest --amend adelie:x86_64 --amend adelie:pmmx --amend adelie:aarch64 --amend adelie:armv7
