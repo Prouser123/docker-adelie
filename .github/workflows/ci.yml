@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.arch }}
-          path: adelie.docker
+          path: /adelie.docker
   build-manifest:
     needs: [buildx]
     runs-on: ubuntu-latest
