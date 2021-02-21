@@ -1,0 +1,49 @@
+name: docker
+
+on: [push, workflow_dispatch]
+
+jobs:
+   buildx:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      matrix: 
+        arch: ["x86_64", "pmmx", "aarch64", "armv7"]
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v1
+      -
+        name: Login to Docker Hub
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+        if: github.ref == 'refs/heads/main'
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      -
+        name: List Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+      -
+        name: Install yq (mikefarah, go)
+        run: sudo su -c 'wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq'
+      -
+        name: Setup nodejs for Dockerfile generation
+        uses: actions/setup-node@v2
+      -
+        name: Generate Dockerfile
+        run: node create-dockerfiles.js
+      -
+        name: Run Buildx (${{ matrix.arch }})
+        run: |
+          docker buildx build \
+            --platform $(yq r arch-mappings.yml ${{ matrix.arch }}) \
+            --output "type=image,push=$([[ $GITHUB_REF == "refs/heads/main" ]] && echo true || echo false)" \
+            -f ${{ matrix.arch }}/Dockerfile -t jcxldn/adelie:latest ${{ matrix.arch }}
