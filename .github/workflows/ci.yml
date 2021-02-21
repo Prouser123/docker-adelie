@@ -49,7 +49,7 @@ jobs:
       - name: (debug) List docker images
         run: docker image ls
       - name: Save built image for other jobs
-        run: sudo su -c 'docker save adelie:${{ matrix.arch }} > /adelie.docker && chmod 777 /${{ matrix.arch }}.docker'
+        run: sudo su -c 'docker save adelie:${{ matrix.arch }} > /adelie.docker && chmod 777 /adelie.docker'
       - name: Upload built image for other jobs
         uses: actions/upload-artifact@v2
         with:
