@@ -60,15 +60,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v2
-        with:
-          path: ~/
       - name: (debug) Display structure of downloaded files
         run: ls -R
       - name: Import docker images
         run: |
-          "cat ~/x86_64/adelie.docker | docker load"
-          "cat ~/pmmx/adelie.docker | docker load"
-          "cat ~/aarch64/adelie.docker | docker load"
-          "cat ~/armv7/adelie.docker | docker load"
+          "cat ./x86_64/adelie.docker | docker load"
+          "cat ./pmmx/adelie.docker | docker load"
+          "cat ./aarch64/adelie.docker | docker load"
+          "cat ./armv7/adelie.docker | docker load"
       - name: Create manifest
         run: docker manifest create jcxldn/adelie:latest --amend adelie:x86_64 --amend adelie:pmmx --amend adelie:aarch64 --amend adelie:armv7
