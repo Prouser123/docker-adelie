@@ -45,7 +45,6 @@ jobs:
         run: |
           docker buildx build \
             --platform $(yq r arch-mappings.yml ${{ matrix.arch }}) \
-            --output "type=image" \
             -f ${{ matrix.arch }}/Dockerfile -t adelie:${{ matrix.arch }} ${{ matrix.arch }}
       - name: (debug) List docker images
         run: docker image ls
