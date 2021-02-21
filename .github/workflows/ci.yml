@@ -46,9 +46,9 @@ jobs:
           docker buildx build \
             --platform $(yq r arch-mappings.yml ${{ matrix.arch }}) \
             --output "type=image,push=false" \
-            -f ${{ matrix.arch }}/Dockerfile -t adelie:${{ matrix.arch }} ${{ matrix.arch }}
+            -f ${{ matrix.arch }}/Dockerfile -t adelie/${{ matrix.arch }} ${{ matrix.arch }}
       - name: Save built image for other jobs
-        run: sudo su -c 'docker save adelie:${{ matrix.arch }} > /adelie.docker && chmod 777 /${{ matrix.arch }}.docker'
+        run: sudo su -c 'docker save adelie/${{ matrix.arch }} > /adelie.docker && chmod 777 /${{ matrix.arch }}.docker'
       - name: Upload built image for other jobs
         uses: actions/upload-artifact@v2
         with:
@@ -66,4 +66,4 @@ jobs:
           "cat ~/aarch64/adelie.docker | docker load"
           "cat ~/armv7/adelie.docker | docker load"
       - name: Create manifest
-        run: docker manifest create jcxldn/adelie:latest --amend adelie:x86_64 --amend adelie:pmmx --amend adelie:aarch64 --amend adelie:armv7
+        run: docker manifest create jcxldn/adelie:latest --amend adelie/x86_64 --amend adelie/pmmx --amend adelie/aarch64 --amend adelie/armv7
