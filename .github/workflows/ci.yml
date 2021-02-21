@@ -38,6 +38,8 @@ jobs:
         run: |
           npm install --no-scripts
           node create-dockerfiles.js
+        with:
+          CHOSEN_ARCH: ${{ matrix.arch }}
       -
         name: Run Buildx (${{ matrix.arch }})
         run: |
