@@ -67,9 +67,9 @@ jobs:
         run: echo ${{ steps.download.outputs.download-path }}
       - name: Import docker images
         run: |
-          "sudo cat ${{ steps.download.outputs.download-path }}/x86_64/adelie.docker | docker load"
-          "sudo cat ${{ steps.download.outputs.download-path }}/pmmx/adelie.docker | docker load"
-          "sudo cat ${{ steps.download.outputs.download-path }}/aarch64/adelie.docker | docker load"
-          "sudo cat ${{ steps.download.outputs.download-path }}/armv7/adelie.docker | docker load"
+          cat ./x86_64/adelie.docker | docker load
+          cat ./pmmx/adelie.docker | docker load
+          cat ./aarch64/adelie.docker | docker load
+          cat ./armv7/adelie.docker | docker load
       - name: Create manifest
         run: docker manifest create jcxldn/adelie:latest --amend adelie:x86_64 --amend adelie:pmmx --amend adelie:aarch64 --amend adelie:armv7
