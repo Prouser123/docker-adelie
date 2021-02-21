@@ -45,11 +45,11 @@ jobs:
         run: |
           docker buildx build \
             --platform $(yq r arch-mappings.yml ${{ matrix.arch }}) \
-            --load -f ${{ matrix.arch }}/Dockerfile -t adelie:${{ matrix.arch }} ${{ matrix.arch }}
+            --load -f ${{ matrix.arch }}/Dockerfile -t jcxldn/adelie:${{ matrix.arch }}-latest ${{ matrix.arch }}
       - name: (debug) List docker images
         run: docker image ls
       - name: Save built image for other jobs
-        run: sudo su -c 'docker save adelie:${{ matrix.arch }} > /adelie.docker && chmod 777 /adelie.docker'
+        run: sudo su -c 'docker save jcxldn/adelie:${{ matrix.arch }}-latest > /adelie.docker && chmod 777 /adelie.docker'
       - name: Upload built image for other jobs
         uses: actions/upload-artifact@v2
         with:
@@ -71,5 +71,28 @@ jobs:
           cat ./pmmx/adelie.docker | docker load
           cat ./aarch64/adelie.docker | docker load
           cat ./armv7/adelie.docker | docker load
-      - name: Create manifest
-        run: docker manifest create jcxldn/adelie:latest --amend adelie:x86_64 --amend adelie:pmmx --amend adelie:aarch64 --amend adelie:armv7
+      - name: Login to Docker Hub (main branch only)
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+        if: github.ref == 'refs/heads/main'
+      - name: Push arch tags as standalone
+        run: |
+          docker push jcxldn/adelie:x86_64-latest
+          docker push jcxldn/adelie:pmmx-latest
+          docker push jcxldn/adelie:aarch64-latest
+          docker push jcxldn/adelie:armv7-latest
+      - name: Create manifest from arch tags
+        run: docker manifest create jcxldn/adelie:latest --amend jcxldn/adelie:x86_64-latest --amend jcxldn/adelie:pmmx-latest --amend jcxldn/adelie:aarch64-latest --amend jcxldn/adelie:armv7-latest
+      - name: Push manifest
+        run: docker manifest push jcxldn/adelie:latest
+  cleanup:
+    needs: [build-manifest]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete build artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            aarch64
+            armv7
+            pmmx
+            x86_64
