@@ -47,13 +47,15 @@ jobs:
             --platform $(yq r arch-mappings.yml ${{ matrix.arch }}) \
             --output "type=image,push=false" \
             -f ${{ matrix.arch }}/Dockerfile -t adelie/${{ matrix.arch }} ${{ matrix.arch }}
+      - name: (debug) List docker images
+        run: docker image ls
       - name: Save built image for other jobs
-        run: sudo su -c 'docker save adelie/${{ matrix.arch }} > /adelie.docker && chmod 777 /${{ matrix.arch }}.docker'
+        run: docker save adelie/${{ matrix.arch }} > adelie.docker && chmod 777 ${{ matrix.arch }}.docker
       - name: Upload built image for other jobs
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.arch }}
-          path: /adelie.docker
+          path: adelie.docker
   build-manifest:
     needs: [buildx]
     runs-on: ubuntu-latest
